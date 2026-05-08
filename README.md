@@ -15,7 +15,7 @@ Why Astro: a static, content-heavy landing page benefits from Astro's zero-JS-by
 
 ```sh
 npm install
-npm run dev      # http://127.0.0.1:4321/asynqpg/
+npm run dev      # http://127.0.0.1:4321/asynqpg-landing/
 npm run build    # outputs ./dist
 npm run preview  # serve the production build locally
 npm run check    # astro check (TS + .astro diagnostics)
@@ -23,7 +23,11 @@ npm run check    # astro check (TS + .astro diagnostics)
 
 ## Deploy
 
-The site is configured with `base: "/asynqpg"` for GitHub Pages under `username.github.io/asynqpg/`. To deploy elsewhere, edit `site` and `base` in `astro.config.mjs`.
+The site auto-deploys to GitHub Pages on every push to `master` via `.github/workflows/deploy.yml`. Production URL: `https://yakser.github.io/asynqpg-landing/`.
+
+One-time setup: in the repo's **Settings → Pages**, set **Source** to **GitHub Actions**.
+
+To deploy elsewhere (Vercel / Netlify / Cloudflare Pages), set `base: "/"` in `astro.config.mjs`.
 
 ## Layout
 
