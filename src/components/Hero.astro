@@ -1,0 +1,75 @@
+---
+import GitHubIcon from "./GitHubIcon.astro";
+import StarIcon from "./StarIcon.astro";
+import { fetchRepoMeta } from "../lib/github";
+
+const repo = await fetchRepoMeta();
+const repoUrl = repo.htmlUrl;
+const docsUrl = "https://pkg.go.dev/github.com/yakser/asynqpg";
+const eyebrow = repo.latestVersion
+  ? `github.com/yakser/asynqpg · ${repo.latestVersion}`
+  : "github.com/yakser/asynqpg";
+---
+
+<section class="hero" aria-labelledby="hero-heading">
+  <div class="hero-grid" aria-hidden="true"></div>
+  <div class="container">
+    <span class="eyebrow">{eyebrow}</span>
+    <h1 id="hero-heading" class="display">
+      Distributed task queue for Go,<br />backed by <em>Postgres</em>.
+    </h1>
+    <p class="lede">
+      No Redis. No new datastore. Consumers pull tasks concurrently without contention – Postgres
+      hands each worker its own batch and skips rows already claimed by others, so throughput scales
+      with workers, not with luck. Producers enqueue inside the same transaction as your business
+      logic, so a job appears if and only if your write commits. Maintenance runs under a
+      leader-elected lease.
+    </p>
+    <div class="hero-ctas">
+      <a class="btn btn-primary" href="#install">
+        Get started <span class="btn-arrow" aria-hidden="true">→</span>
+      </a>
+      <a class="btn btn-secondary" href={repoUrl}>
+        <GitHubIcon />
+        View on GitHub <span class="btn-arrow is-muted" aria-hidden="true">↗</span>
+      </a>
+      <a class="btn btn-ghost" href={docsUrl}>Read the docs</a>
+    </div>
+    <div class="badges">
+      <span class="badge brand"><span class="l">go.dev</span><span class="r">reference</span></span>
+      <span class="badge"><span class="l">go</span><span class="r">1.25+</span></span>
+      <span class="badge"><span class="l">postgres</span><span class="r">14+</span></span>
+      {
+        repo.license && (
+          <span class="badge">
+            <>
+              <span class="l">license</span>
+              <span class="r">{repo.license}</span>
+            </>
+          </span>
+        )
+      }
+    </div>
+    <div class="hero-stats">
+      <div>
+        <div class="num stat-with-icon">
+          {repo.starsFormatted}
+          <StarIcon size={20} class="stat-star" />
+        </div>
+        <div class="lbl">GitHub stars</div>
+      </div>
+      {
+        repo.latestVersion && (
+          <div>
+            <div class="num">{repo.latestVersion}</div>
+            <div class="lbl">latest release</div>
+          </div>
+        )
+      }
+      <div>
+        <div class="num">{repo.openIssues} <span class="stat-suffix">open</span></div>
+        <div class="lbl">issues &amp; PRs</div>
+      </div>
+    </div>
+  </div>
+</section>

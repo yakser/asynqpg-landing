@@ -1,0 +1,83 @@
+---
+const lifecycleAscii = `                  enqueue              fetched by consumer       handler success
+                ┌─────────┐         ┌────────────────────┐     ┌─────────────┐
+  Enqueue(t) ──►│ <span class="pending">● pending</span> ├────────►│ <span class="running">● running</span>           ├────►│ <span class="completed">● completed</span> │
+                └────┬────┘         └─────┬──────────────┘     └─────────────┘
+                     ▲                    │
+   <span class="c">retry · attempts &gt; 0 │</span>                    │ handler error · attempts = 0
+                     │                    ▼
+                     │              <span class="failed">● failed</span>  ────────────►  <span class="cancelled">● cancelled</span>
+                     │              (manual retry/cancel)
+                     │
+   <span class="c">stuck · rescuer ─────┘</span>            <span class="c">↓ auto-delete (cleaner) for completed/failed/cancelled</span>`;
+
+const packages = [
+  {
+    name: "producer/",
+    body: "Enqueue tasks. <code>Enqueue</code>, <code>EnqueueTx</code>, <code>EnqueueMany</code>, <code>EnqueueManyTx</code>.",
+  },
+  {
+    name: "consumer/",
+    body: "Fetch and process tasks with configurable per-type worker pools. Middleware. Snooze, skip-retry, custom retry policies.",
+  },
+  {
+    name: "client/",
+    body: "Inspect and manage tasks. <code>GetTask</code>, <code>ListTasks</code>, <code>CancelTask</code>, <code>RetryTask</code>, <code>DeleteTask</code>. All have <code>*Tx</code> variants.",
+  },
+  {
+    name: "ui/",
+    body: "HTTP handler serving REST API + embedded React SPA dashboard. Basic Auth or pluggable OAuth providers.",
+  },
+  {
+    name: "internal/leadership/",
+    body: "Postgres-leased leader election. The leader runs maintenance.",
+  },
+  {
+    name: "internal/maintenance/",
+    body: "Stuck-task rescuer + finalized-task cleaner. Leader-only. Off by default.",
+  },
+];
+---
+
+<section class="section" id="architecture" aria-labelledby="architecture-heading">
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow">Architecture</span>
+        <h2 id="architecture-heading">A queue is a table.</h2>
+      </div>
+      <p class="lede">
+        Five lifecycle states. One row per task. Workers pull jobs concurrently without stepping on
+        each other – Postgres locks the rows it hands out and lets the rest move on, so no two
+        consumers ever grab the same task and idle workers are never blocked by busy ones.
+      </p>
+    </div>
+
+    <div
+      class="lifecycle"
+      role="img"
+      aria-label="Task lifecycle diagram: a task moves from pending to running, then to completed on success, or to failed when retries are exhausted; failed tasks can be manually cancelled, and stuck tasks return to pending via the rescuer."
+    >
+      <pre aria-hidden="true" set:html={lifecycleAscii} />
+    </div>
+
+    <h3 id="packages-heading" class="h-packages">Packages</h3>
+    <div class="table-scroll" role="region" aria-labelledby="packages-heading" tabindex="0">
+      <table class="pkg">
+        <thead>
+          <tr><th scope="col">Package</th><th scope="col">Purpose</th></tr>
+        </thead>
+        <tbody>
+          {
+            packages.map((p) => (
+              <tr>
+                <td>{p.name}</td>
+                <td set:html={p.body} />
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>

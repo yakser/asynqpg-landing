@@ -1,0 +1,175 @@
+---
+import BrandMark from "./BrandMark.astro";
+import GitHubIcon from "./GitHubIcon.astro";
+import StarIcon from "./StarIcon.astro";
+import ThemeToggle from "./ThemeToggle.astro";
+import { fetchRepoMeta } from "../lib/github";
+
+const repo = await fetchRepoMeta();
+const repoUrl = repo.htmlUrl;
+const docsUrl = "https://pkg.go.dev/github.com/yakser/asynqpg";
+---
+
+<header class="masthead">
+  <div class="container masthead-inner">
+    <a class="brand-lockup" href="#">
+      <BrandMark />
+      <span class="wm"><span class="a">asynq</span><span class="b">pg</span></span>
+      {repo.latestVersion && <span class="tag">{repo.latestVersion}</span>}
+    </a>
+
+    <nav class="mast-nav mast-nav--desktop" aria-label="Primary">
+      <a class="nav-link" href="#install">Quickstart</a>
+      <a class="nav-link" href="#architecture">Architecture</a>
+      <a class="nav-link" href="#dashboard">Dashboard</a>
+      <a class="nav-link" href={docsUrl}
+        >Reference&nbsp;<span aria-hidden="true">↗</span><span class="sr-only">
+          (opens in new tab)</span
+        ></a
+      >
+      <ThemeToggle />
+      <a
+        class="btn btn-secondary gh-stars"
+        href={repoUrl}
+        aria-label={`asynqpg on GitHub, ${repo.starsFormatted} stars`}
+      >
+        <GitHubIcon />
+        <span class="gh-label">GitHub</span>
+        <span class="gh-stars-count" aria-hidden="true">
+          <StarIcon />
+          {repo.starsFormatted}
+        </span>
+      </a>
+    </nav>
+
+    <button
+      type="button"
+      class="mast-toggle"
+      aria-label="Open menu"
+      aria-expanded="false"
+      aria-controls="mast-nav-mobile"
+      data-mast-toggle
+    >
+      <svg
+        class="icon-burger"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        aria-hidden="true"
+        focusable="false"
+      >
+        <path d="M4 7h16M4 12h16M4 17h16" stroke-linecap="round"></path>
+      </svg>
+      <svg
+        class="icon-close"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        aria-hidden="true"
+        focusable="false"
+      >
+        <path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"></path>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<div class="mast-nav-overlay" data-mast-overlay hidden></div>
+
+<nav
+  class="mast-nav mast-nav--mobile"
+  id="mast-nav-mobile"
+  aria-label="Primary mobile"
+  data-mast-mobile
+  hidden
+>
+  <a class="nav-link" href="#install">Quickstart</a>
+  <a class="nav-link" href="#features">Features</a>
+  <a class="nav-link" href="#architecture">Architecture</a>
+  <a class="nav-link" href="#dashboard">Dashboard</a>
+  <a class="nav-link" href="#observability">Observability</a>
+  <a class="nav-link" href={docsUrl}
+    >Reference&nbsp;<span aria-hidden="true">↗</span><span class="sr-only">
+      (opens in new tab)</span
+    ></a
+  >
+  <div class="mast-nav-footer">
+    <ThemeToggle />
+    <a
+      class="btn btn-secondary gh-stars"
+      href={repoUrl}
+      aria-label={`asynqpg on GitHub, ${repo.starsFormatted} stars`}
+    >
+      <GitHubIcon />
+      <span class="gh-label">GitHub</span>
+      <span class="gh-stars-count" aria-hidden="true">
+        <StarIcon />
+        {repo.starsFormatted}
+      </span>
+    </a>
+  </div>
+</nav>
+
+<script>
+  const toggle = document.querySelector<HTMLButtonElement>("[data-mast-toggle]");
+  const panel = document.querySelector<HTMLElement>("[data-mast-mobile]");
+  const overlay = document.querySelector<HTMLElement>("[data-mast-overlay]");
+
+  if (toggle && panel && overlay) {
+    let lastFocused: HTMLElement | null = null;
+
+    const close = () => {
+      toggle.setAttribute("aria-expanded", "false");
+      toggle.setAttribute("aria-label", "Open menu");
+      panel.classList.remove("is-open");
+      overlay.classList.remove("is-open");
+      document.body.classList.remove("nav-open");
+      // restore hidden after transition for a11y
+      panel.setAttribute("hidden", "");
+      overlay.setAttribute("hidden", "");
+      if (lastFocused) lastFocused.focus();
+    };
+
+    const open = () => {
+      lastFocused = document.activeElement as HTMLElement;
+      panel.removeAttribute("hidden");
+      overlay.removeAttribute("hidden");
+      // force reflow so transitions run
+      void panel.offsetHeight;
+      toggle.setAttribute("aria-expanded", "true");
+      toggle.setAttribute("aria-label", "Close menu");
+      panel.classList.add("is-open");
+      overlay.classList.add("is-open");
+      document.body.classList.add("nav-open");
+      const firstLink = panel.querySelector<HTMLElement>("a, button");
+      firstLink?.focus();
+    };
+
+    toggle.addEventListener("click", () => {
+      const expanded = toggle.getAttribute("aria-expanded") === "true";
+      if (expanded) close();
+      else open();
+    });
+
+    overlay.addEventListener("click", () => close());
+
+    panel.querySelectorAll("a").forEach((a) => {
+      a.addEventListener("click", () => close());
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && toggle.getAttribute("aria-expanded") === "true") {
+        e.preventDefault();
+        close();
+      }
+    });
+
+    const mq = window.matchMedia("(min-width: 901px)");
+    const onChange = (e: MediaQueryListEvent | MediaQueryList) => {
+      if (e.matches && toggle.getAttribute("aria-expanded") === "true") close();
+    };
+    mq.addEventListener("change", onChange);
+  }
+</script>

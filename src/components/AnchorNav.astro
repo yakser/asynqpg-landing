@@ -1,0 +1,49 @@
+---
+const links = [
+  { href: "#install", label: "Install" },
+  { href: "#features", label: "Features" },
+  { href: "#architecture", label: "Architecture" },
+  { href: "#dashboard", label: "Dashboard" },
+  { href: "#observability", label: "Observability" },
+];
+---
+
+<div class="anchor-nav-wrap">
+  <div class="container">
+    <nav class="anchor-nav" data-anchor-nav aria-label="Page sections">
+      {
+        links.map((l, i) => (
+          <a
+            href={l.href}
+            class={i === 0 ? "active" : ""}
+            aria-current={i === 0 ? "true" : undefined}
+          >
+            {l.label}
+          </a>
+        ))
+      }
+    </nav>
+  </div>
+</div>
+
+<script>
+  const links = document.querySelectorAll<HTMLAnchorElement>("[data-anchor-nav] a");
+  const sections = [...links]
+    .map((l) => document.querySelector<HTMLElement>(l.getAttribute("href") ?? ""))
+    .filter((el): el is HTMLElement => el !== null);
+
+  const sync = () => {
+    const y = window.scrollY + 140;
+    let active: HTMLElement | undefined = sections[0];
+    for (const s of sections) if (s.offsetTop <= y) active = s;
+    links.forEach((l) => {
+      const isActive = !!active && l.getAttribute("href") === "#" + active.id;
+      l.classList.toggle("active", isActive);
+      if (isActive) l.setAttribute("aria-current", "true");
+      else l.removeAttribute("aria-current");
+    });
+  };
+
+  window.addEventListener("scroll", sync, { passive: true });
+  sync();
+</script>
