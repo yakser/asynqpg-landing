@@ -1,0 +1,72 @@
+---
+import BrandMark from "./BrandMark.astro";
+
+const repo = "https://github.com/yakser/asynqpg";
+
+const cols = [
+  {
+    title: "Project",
+    links: [
+      { href: repo, label: "GitHub" },
+      { href: `${repo}/releases`, label: "Releases" },
+      { href: `${repo}/issues`, label: "Issues" },
+      { href: `${repo}/discussions`, label: "Discussions" },
+    ],
+  },
+  {
+    title: "Docs",
+    links: [
+      { href: "https://pkg.go.dev/github.com/yakser/asynqpg", label: "pkg.go.dev" },
+      { href: "#install", label: "Quickstart" },
+      { href: "#architecture", label: "Architecture" },
+      { href: "#observability", label: "Observability" },
+    ],
+  },
+  {
+    title: "License",
+    links: [
+      { href: `${repo}/blob/master/LICENSE`, label: "MIT" },
+      { href: `${repo}/blob/master/CODE_OF_CONDUCT.md`, label: "Code of conduct" },
+      { href: `${repo}/blob/master/SECURITY.md`, label: "Security" },
+    ],
+  },
+];
+---
+
+<footer class="foot" aria-labelledby="footer-heading">
+  <h2 id="footer-heading" class="sr-only">Site footer</h2>
+  <div class="container">
+    <div class="foot-grid">
+      <div class="foot-brand">
+        <a class="brand-lockup" href="#">
+          <BrandMark />
+          <span class="wm"><span class="a">asynq</span><span class="b">pg</span></span>
+        </a>
+        <p class="foot-brand-desc">
+          Distributed task queue for Go, backed by Postgres. MIT-licensed. Under active development
+          – the API may change before v1.0.
+        </p>
+      </div>
+      {
+        cols.map((col) => (
+          <nav aria-labelledby={`foot-${col.title.toLowerCase()}`}>
+            <h3 id={`foot-${col.title.toLowerCase()}`} class="foot-h">
+              {col.title}
+            </h3>
+            <ul>
+              {col.links.map((l) => (
+                <li>
+                  <a href={l.href}>{l.label}</a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        ))
+      }
+    </div>
+    <div class="foot-bottom">
+      <span>© 2026 yakser · MIT</span>
+      <span class="mono">github.com/yakser/asynqpg</span>
+    </div>
+  </div>
+</footer>

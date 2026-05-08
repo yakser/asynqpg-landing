@@ -141,3 +141,22 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+
+# Astro
+.astro/
+
+
+
+# Playwright artifacts
+.playwright-mcp/
+.screenshots/
+
+# IDE
+.idea/
+
+# Claude / agent tooling
+.claude/
+.agents/
+skills-lock.json
+

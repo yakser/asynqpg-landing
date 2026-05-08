@@ -1,0 +1,323 @@
+---
+import { createCssVariablesTheme, createHighlighter } from "shiki";
+
+const steps = [
+  {
+    num: "01",
+    title: "Install the module",
+    body: "Adds <code>asynqpg</code> to your Go workspace.",
+  },
+  {
+    num: "02",
+    title: "Apply the migration",
+    body: "One SQL file. Creates <code>asynqpg_tasks</code> + indexes.",
+  },
+  {
+    num: "03",
+    title: "Wire a producer",
+    body: "Pass a <code>*sqlx.DB</code>. Call <code>Enqueue</code>. Done.",
+  },
+  {
+    num: "04",
+    title: "Wire a consumer",
+    body: "Register a handler per task type. <code>Start()</code>.",
+  },
+];
+
+type PaneId = "install" | "migrate" | "producer" | "consumer";
+type Lang = "go" | "sql" | "bash";
+type Pane = { id: PaneId; label: string; lang: Lang; display: string; copy: string };
+
+const RAW_BASE = "https://raw.githubusercontent.com/yakser/asynqpg/master";
+
+const INSTALL_COPY = "go get github.com/yakser/asynqpg";
+
+async function fetchRaw(path: string): Promise<string> {
+  const res = await fetch(`${RAW_BASE}/${path}`);
+  if (!res.ok) {
+    throw new Error(`Failed to fetch ${path} from master: ${res.status} ${res.statusText}`);
+  }
+  return await res.text();
+}
+
+function extractReadmeGoBlock(readme: string, heading: string): string {
+  const idx = readme.indexOf(`### ${heading}`);
+  if (idx === -1) {
+    throw new Error(`README section "### ${heading}" not found on master`);
+  }
+  const m = readme.slice(idx).match(/```go\n([\s\S]*?)\n```/);
+  if (!m) {
+    throw new Error(`No \`\`\`go block found under "### ${heading}" on master`);
+  }
+  return m[1];
+}
+
+const [migrationSrc, readmeSrc] = await Promise.all([
+  fetchRaw("migrations/001_initial.sql"),
+  fetchRaw("README.md"),
+]);
+
+const migrationCopy = migrationSrc.trim();
+const producerCopy = extractReadmeGoBlock(readmeSrc, "Producer");
+const consumerCopy = extractReadmeGoBlock(readmeSrc, "Consumer");
+
+const installDisplay = `$ go get github.com/yakser/asynqpg`;
+
+const migrateDisplay = `-- 001_initial.sql · creates the tasks table + indexes
+CREATE TYPE asynqpg_task_status AS ENUM (
+    'pending', 'running', 'completed', 'failed', 'cancelled'
+);
+CREATE TABLE asynqpg_tasks (
+    id BIGSERIAL PRIMARY KEY,
+    type TEXT NOT NULL,
+    payload BYTEA NOT NULL,
+    status asynqpg_task_status NOT NULL DEFAULT 'pending',
+    attempts_left SMALLINT NOT NULL,
+    blocked_till TIMESTAMPTZ NOT NULL
+    -- ... 5 indexes, idempotency, lifecycle constraints
+) WITH (fillfactor = 90);`;
+
+const producerDisplay = `package main
+
+import (
+    "context"
+    "github.com/jmoiron/sqlx"
+    "github.com/yakser/asynqpg"
+    "github.com/yakser/asynqpg/producer"
+)
+
+func main() {
+    db := sqlx.MustConnect("postgres", dsn)
+    p, _ := producer.New(producer.Config{Pool: db})
+
+    // Enqueue inside an existing transaction.
+    tx := db.MustBeginTx(ctx, nil)
+    _, err := p.EnqueueTx(ctx, tx, asynqpg.NewTask("email:send", payload,
+        asynqpg.WithMaxRetry(5),
+        asynqpg.WithDelay(10*time.Second),
+        asynqpg.WithIdempotencyToken("order-1234"),
+    ))
+    if err == nil { tx.Commit() }
+}`;
+
+const consumerDisplay = `package main
+
+import (
+    "context"
+    "github.com/yakser/asynqpg"
+    "github.com/yakser/asynqpg/consumer"
+)
+
+func main() {
+    c, _ := consumer.New(consumer.Config{Pool: db})
+
+    c.RegisterTaskHandler("email:send",
+        consumer.TaskHandlerFunc(func(ctx context.Context, t *asynqpg.TaskInfo) error {
+            // process task...
+            return nil
+        }),
+        consumer.WithWorkersCount(5),
+        consumer.WithTimeout(30*time.Second),
+    )
+
+    c.Start()
+    // graceful shutdown on SIGTERM…
+    c.Stop()
+}`;
+
+const panes: Pane[] = [
+  { id: "install", label: "install", lang: "bash", display: installDisplay, copy: INSTALL_COPY },
+  { id: "migrate", label: "migrate", lang: "sql", display: migrateDisplay, copy: migrationCopy },
+  {
+    id: "producer",
+    label: "producer.go",
+    lang: "go",
+    display: producerDisplay,
+    copy: producerCopy,
+  },
+  {
+    id: "consumer",
+    label: "consumer.go",
+    lang: "go",
+    display: consumerDisplay,
+    copy: consumerCopy,
+  },
+];
+
+const shikiTheme = createCssVariablesTheme({
+  name: "asynqpg",
+  variablePrefix: "--shiki-",
+  fontStyle: true,
+});
+
+const highlighter = await createHighlighter({
+  themes: [shikiTheme],
+  langs: ["go", "sql", "bash"],
+});
+
+const highlighted: Record<PaneId, string> = Object.fromEntries(
+  panes.map((p) => [p.id, highlighter.codeToHtml(p.display, { lang: p.lang, theme: "asynqpg" })]),
+) as Record<PaneId, string>;
+
+const copyMap: Record<PaneId, string> = Object.fromEntries(
+  panes.map((p) => [p.id, p.copy]),
+) as Record<PaneId, string>;
+---
+
+<section class="section" id="install" aria-labelledby="install-heading">
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow">Quickstart</span>
+        <h2 id="install-heading">Five minutes from zero to a working queue.</h2>
+      </div>
+      <p class="lede">
+        Three steps: install the module, apply one migration, write a producer and a consumer. No
+        infra to provision.
+      </p>
+    </div>
+
+    <div class="install-grid">
+      <div>
+        {
+          steps.map((s) => (
+            <div class="install-step">
+              <div class="num">{s.num}</div>
+              <div class="body">
+                <h3>{s.title}</h3>
+                <p set:html={s.body} />
+              </div>
+            </div>
+          ))
+        }
+      </div>
+
+      <div class="cb" data-codeblock>
+        <div class="cb-toolbar">
+          <div class="cb-tabs" role="tablist" aria-label="Code examples">
+            {
+              panes.map((p, i) => (
+                <button
+                  class={`cb-tab${i === 0 ? " active" : ""}`}
+                  data-pane={p.id}
+                  role="tab"
+                  type="button"
+                  id={`cb-tab-${p.id}`}
+                  aria-controls={`cb-pane-${p.id}`}
+                  aria-selected={i === 0 ? "true" : "false"}
+                  tabindex={i === 0 ? 0 : -1}
+                >
+                  {p.label}
+                </button>
+              ))
+            }
+          </div>
+          <button class="cb-action" data-copy type="button" aria-label="Copy code to clipboard">
+            <span data-copy-label>Copy</span>
+          </button>
+        </div>
+        <div class="cb-body">
+          {
+            panes.map((p, i) => (
+              <div
+                class={`cb-pane${i === 0 ? " active" : ""}`}
+                data-pane={p.id}
+                role="tabpanel"
+                id={`cb-pane-${p.id}`}
+                aria-labelledby={`cb-tab-${p.id}`}
+                tabindex="0"
+                hidden={i === 0 ? undefined : true}
+                set:html={highlighted[p.id]}
+              />
+            ))
+          }
+        </div>
+        <span class="sr-only" aria-live="polite" data-copy-status></span>
+        <script
+          is:inline
+          type="application/json"
+          data-copy-map
+          set:html={JSON.stringify(copyMap)}
+        />
+      </div>
+    </div>
+
+    <div class="callout tip is-spaced">
+      <div class="bar"></div>
+      <div class="body">
+        <b>Tip.</b> Pass <code>EnqueueTx</code> the same <code>tx</code> as your business logic. The queued
+        job commits if (and only if) your transaction commits. Try doing that with Redis.
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  document.querySelectorAll<HTMLElement>("[data-codeblock]").forEach((root) => {
+    const tabs = Array.from(root.querySelectorAll<HTMLButtonElement>(".cb-tab"));
+    const panes = Array.from(root.querySelectorAll<HTMLElement>(".cb-pane"));
+
+    const activate = (btn: HTMLButtonElement, focus = false) => {
+      const pane = btn.dataset.pane;
+      tabs.forEach((b) => {
+        const isActive = b === btn;
+        b.classList.toggle("active", isActive);
+        b.setAttribute("aria-selected", isActive ? "true" : "false");
+        b.setAttribute("tabindex", isActive ? "0" : "-1");
+      });
+      panes.forEach((p) => {
+        const isActive = p.dataset.pane === pane;
+        p.classList.toggle("active", isActive);
+        if (isActive) p.removeAttribute("hidden");
+        else p.setAttribute("hidden", "");
+      });
+      if (focus) btn.focus();
+    };
+
+    tabs.forEach((btn) => {
+      btn.addEventListener("click", () => activate(btn));
+      btn.addEventListener("keydown", (e) => {
+        const idx = tabs.indexOf(btn);
+        if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
+          e.preventDefault();
+          const dir = e.key === "ArrowRight" ? 1 : -1;
+          const next = tabs[(idx + dir + tabs.length) % tabs.length];
+          activate(next, true);
+        } else if (e.key === "Home") {
+          e.preventDefault();
+          activate(tabs[0], true);
+        } else if (e.key === "End") {
+          e.preventDefault();
+          activate(tabs[tabs.length - 1], true);
+        }
+      });
+    });
+
+    let copyMap: Record<string, string> = {};
+    const mapEl = root.querySelector<HTMLElement>("[data-copy-map]");
+    if (mapEl?.textContent) {
+      try {
+        copyMap = JSON.parse(mapEl.textContent);
+      } catch {
+        // JSON.parse failure is non-fatal; copy falls back to active pane innerText below.
+      }
+    }
+
+    const copyBtn = root.querySelector<HTMLButtonElement>("[data-copy]");
+    const copyLabel = root.querySelector<HTMLElement>("[data-copy-label]");
+    const copyStatus = root.querySelector<HTMLElement>("[data-copy-status]");
+    copyBtn?.addEventListener("click", () => {
+      const active = root.querySelector<HTMLElement>(".cb-pane.active");
+      if (!active) return;
+      const id = active.dataset.pane ?? "";
+      const text = copyMap[id] ?? active.innerText;
+      navigator.clipboard.writeText(text).catch(() => {});
+      if (copyLabel) copyLabel.textContent = "Copied ✓";
+      if (copyStatus) copyStatus.textContent = "Code copied to clipboard";
+      setTimeout(() => {
+        if (copyLabel) copyLabel.textContent = "Copy";
+        if (copyStatus) copyStatus.textContent = "";
+      }, 1400);
+    });
+  });
+</script>

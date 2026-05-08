@@ -1,0 +1,131 @@
+---
+type Feature = {
+  title: string;
+  bodyHtml: string;
+  icon: "table" | "tx" | "retry" | "clock" | "pools" | "leader" | "idem" | "otel" | "dashboard";
+};
+
+const features: Feature[] = [
+  {
+    icon: "table",
+    title: "Postgres-native",
+    bodyHtml: "Tasks live in a single table. No Redis, no Kafka, no new datastore to operate.",
+  },
+  {
+    icon: "tx",
+    title: "Transactional enqueue",
+    bodyHtml:
+      "Pass an <code>*sqlx.Tx</code> to <code>EnqueueTx</code>. The job is committed atomically with your business logic.",
+  },
+  {
+    icon: "retry",
+    title: "Flexible retries",
+    bodyHtml:
+      "Exponential or constant backoff, snooze without consuming an attempt, skip-retry for permanent errors.",
+  },
+  {
+    icon: "clock",
+    title: "Delayed & scheduled",
+    bodyHtml:
+      "Run tasks at a future time. <code>WithDelay</code>, or set <code>ProcessAt</code> directly on the task.",
+  },
+  {
+    icon: "pools",
+    title: "Per-type worker pools",
+    bodyHtml:
+      "Independent concurrency, timeout, and middleware per task type. <code>email:send</code> can have 5 workers, <code>report:generate</code> can have 2.",
+  },
+  {
+    icon: "leader",
+    title: "Leader-elected maintenance",
+    bodyHtml:
+      "One node holds a lease. Stuck-task rescue and old-task cleanup run there. The other nodes just fetch.",
+  },
+  {
+    icon: "idem",
+    title: "Idempotency tokens",
+    bodyHtml:
+      "<code>EnqueueMany</code> deduplicates by <code>(type, idempotency_token)</code> at the DB layer, not in code.",
+  },
+  {
+    icon: "otel",
+    title: "OpenTelemetry built in",
+    bodyHtml:
+      "Counters, histograms, and traces for every enqueue and handler call. <code>SpanKind</code> set correctly for each.",
+  },
+  {
+    icon: "dashboard",
+    title: "Web dashboard",
+    bodyHtml:
+      "Embedded React SPA. Inspect, retry, cancel, delete tasks. Basic Auth or GitHub OAuth.",
+  },
+];
+---
+
+<section class="section" id="features" aria-labelledby="features-heading">
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow">Capabilities</span>
+        <h2 id="features-heading">Built for production task queues.</h2>
+      </div>
+      <p class="lede">
+        No magic. Every feature maps to one or two columns in <code>asynqpg_tasks</code> or a small SQL
+        pattern.
+      </p>
+    </div>
+    <div class="features">
+      {
+        features.map((f) => (
+          <div class="fcard">
+            <svg
+              class="icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+              aria-hidden="true"
+              focusable="false"
+            >
+              {f.icon === "table" && (
+                <>
+                  <rect x="3" y="3" width="18" height="18" rx="2" />
+                  <path d="M3 10h18M10 3v18" />
+                </>
+              )}
+              {f.icon === "tx" && <path d="M16 4h4v4M14 10l6-6M8 20H4v-4M10 14l-6 6" />}
+              {f.icon === "retry" && <path d="M21 12a9 9 0 1 1-3.6-7.2M21 4v5h-5" />}
+              {f.icon === "clock" && (
+                <>
+                  <circle cx="12" cy="12" r="9" />
+                  <path d="M12 7v5l3 2" />
+                </>
+              )}
+              {f.icon === "pools" && (
+                <path d="M5 12h14M5 12a3 3 0 1 1 6 0 3 3 0 0 1-6 0zM13 12a3 3 0 1 1 6 0 3 3 0 0 1-6 0z" />
+              )}
+              {f.icon === "leader" && (
+                <path d="M12 2l3 7h7l-5.5 4.5L18 21l-6-4-6 4 1.5-7.5L2 9h7z" />
+              )}
+              {f.icon === "idem" && <path d="M3 6h18M3 12h18M3 18h12" />}
+              {f.icon === "otel" && (
+                <>
+                  <circle cx="12" cy="12" r="3" />
+                  <path d="M3 12h2M19 12h2M12 3v2M12 19v2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M5.6 18.4l1.4-1.4M17 7l1.4-1.4" />
+                </>
+              )}
+              {f.icon === "dashboard" && (
+                <>
+                  <rect x="3" y="4" width="18" height="14" rx="2" />
+                  <path d="M7 20h10M3 9h18" />
+                </>
+              )}
+            </svg>
+            <h3>{f.title}</h3>
+            <p set:html={f.bodyHtml} />
+          </div>
+        ))
+      }
+    </div>
+  </div>
+</section>

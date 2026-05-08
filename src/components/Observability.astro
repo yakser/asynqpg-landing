@@ -1,0 +1,60 @@
+---
+const metrics = [
+  {
+    name: "asynqpg.tasks.enqueued",
+    type: "counter",
+    desc: "Tasks enqueued, tagged by <code>task_type</code>.",
+  },
+  {
+    name: "asynqpg.tasks.processed",
+    type: "counter",
+    desc: "Tasks finished, tagged by <code>task_type</code> and <code>status</code>.",
+  },
+  { name: "asynqpg.tasks.errors", type: "counter", desc: "Processing or enqueue errors." },
+  {
+    name: "asynqpg.task.duration",
+    type: "histogram",
+    desc: "Handler execution latency (seconds). p50/p95/p99 in the Grafana panel.",
+  },
+  { name: "asynqpg.task.enqueue_duration", type: "histogram", desc: "Enqueue latency (seconds)." },
+  { name: "asynqpg.tasks.in_flight", type: "gauge", desc: "Currently executing tasks." },
+];
+---
+
+<section class="section" id="observability" aria-labelledby="observability-heading">
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow">Observability</span>
+        <h2 id="observability-heading">OpenTelemetry, end to end.</h2>
+      </div>
+      <p class="lede">
+        All public components accept optional <code>MeterProvider</code> and <code
+          >TracerProvider</code
+        >. A pre-built Grafana dashboard ships in <code>deploy/</code>.
+      </p>
+    </div>
+
+    <div class="table-scroll" role="region" aria-labelledby="observability-heading" tabindex="0">
+      <table class="pkg">
+        <thead>
+          <tr
+            ><th scope="col">Metric</th><th scope="col">Type</th><th scope="col">Description</th
+            ></tr
+          >
+        </thead>
+        <tbody>
+          {
+            metrics.map((m) => (
+              <tr>
+                <td>{m.name}</td>
+                <td class="type">{m.type}</td>
+                <td set:html={m.desc} />
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
