@@ -19,10 +19,10 @@ const eyebrow = repo.latestVersion
       Distributed task queue for Go,<br />backed by <em>Postgres</em>.
     </h1>
     <p class="lede">
-      Consumers pull tasks concurrently without contention – Postgres
-      hands each worker its own batch and skips rows already claimed by others, so throughput scales
-      with workers. Producers can enqueue inside the same transaction as your business
-      logic, so a job appears if and only if your write commits.
+      Consumers pull tasks concurrently without contention – Postgres hands each worker its own
+      batch and skips rows already claimed by others, so throughput scales with workers. Producers
+      can enqueue inside the same transaction as your business logic, so a job appears if and only
+      if your write commits.
     </p>
     <div class="hero-ctas">
       <a class="btn btn-primary" href="#install">
