@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://yakser.github.io/asynqpg-landing/sitemap.xml

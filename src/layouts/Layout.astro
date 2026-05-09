@@ -4,15 +4,63 @@ import "../styles/global.css";
 interface Props {
   title?: string;
   description?: string;
+  image?: string;
+  canonical?: string;
+  noindex?: boolean;
 }
 
+const SITE_NAME = "asynqpg";
+const DEFAULT_TITLE = "asynqpg – Distributed task queue for Go, backed by Postgres";
+const DEFAULT_DESCRIPTION =
+  "asynqpg is a Postgres-backed distributed task queue for Go. Consumers pull jobs concurrently without contention, and producers can enqueue inside the same transaction as your business logic – so a task appears if and only if your write commits.";
+const KEYWORDS = [
+  "asynqpg",
+  "Go task queue",
+  "Postgres task queue",
+  "distributed task queue",
+  "background jobs Go",
+  "transactional outbox",
+  "SKIP LOCKED",
+  "job scheduler Go",
+  "asynq alternative",
+  "pgmq",
+].join(", ");
+
 const {
-  title = "asynqpg – Distributed task queue for Go, backed by Postgres",
-  description = "Consumers pull jobs concurrently without contention, producers can enqueue inside the same transaction as your business logic, so a task appears if and only if your write commits.",
+  title = DEFAULT_TITLE,
+  description = DEFAULT_DESCRIPTION,
+  image,
+  canonical,
+  noindex = false,
 } = Astro.props;
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 const favicon = `${base}/assets/favicon.svg`;
+
+const siteOrigin = Astro.site ? new URL(Astro.site).origin : "https://yakser.github.io";
+const canonicalUrl = canonical ?? new URL(Astro.url.pathname, siteOrigin).toString();
+const ogImagePath = image ?? `${base}/assets/og-image.png`;
+const ogImageUrl = ogImagePath.startsWith("http")
+  ? ogImagePath
+  : new URL(ogImagePath, siteOrigin).toString();
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareSourceCode",
+  name: "asynqpg",
+  description: DEFAULT_DESCRIPTION,
+  url: canonicalUrl,
+  image: ogImageUrl,
+  codeRepository: "https://github.com/yakser/asynqpg",
+  programmingLanguage: "Go",
+  runtimePlatform: "Go 1.25+, PostgreSQL 14+",
+  license: "https://opensource.org/licenses/MIT",
+  author: {
+    "@type": "Person",
+    name: "Sergey Yaksanov",
+    url: "https://github.com/yakser",
+  },
+};
 ---
 
 <!doctype html>
@@ -20,12 +68,43 @@ const favicon = `${base}/assets/favicon.svg`;
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#0b0b0f" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+
     <title>{title}</title>
     <meta name="description" content={description} />
-    <link rel="icon" href={favicon} />
+    <meta name="keywords" content={KEYWORDS} />
+    <meta name="author" content="Sergey Yaksanov" />
+    <meta name="generator" content={Astro.generator} />
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
+
+    <link rel="canonical" href={canonicalUrl} />
+    <link rel="icon" href={favicon} type="image/svg+xml" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={SITE_NAME} />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
-    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:image" content={ogImageUrl} />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="asynqpg landing page – Distributed task queue for Go, backed by Postgres"
+    />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImageUrl} />
+    <meta
+      name="twitter:image:alt"
+      content="asynqpg landing page – Distributed task queue for Go, backed by Postgres"
+    />
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -41,6 +120,8 @@ const favicon = `${base}/assets/favicon.svg`;
         href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap"
       />
     </noscript>
+
+    <script is:inline type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
 
     <script is:inline>
       (() => {
