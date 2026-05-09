@@ -589,6 +589,13 @@ a.btn-ghost:hover {
   font-family: var(--font-mono);
   font-size: 11px;
   line-height: 1;
+  text-decoration: none;
+}
+a.badge {
+  transition: opacity 0.15s ease;
+}
+a.badge:hover {
+  opacity: 0.85;
 }
 .badge .l,
 .badge .r {
