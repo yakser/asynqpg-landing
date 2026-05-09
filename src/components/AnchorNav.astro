@@ -1,7 +1,7 @@
 ---
 const links = [
-  { href: "#install", label: "Install" },
   { href: "#features", label: "Features" },
+  { href: "#install", label: "Install" },
   { href: "#architecture", label: "Architecture" },
   { href: "#dashboard", label: "Dashboard" },
   { href: "#observability", label: "Observability" },
@@ -30,7 +30,8 @@ const links = [
   const links = document.querySelectorAll<HTMLAnchorElement>("[data-anchor-nav] a");
   const sections = [...links]
     .map((l) => document.querySelector<HTMLElement>(l.getAttribute("href") ?? ""))
-    .filter((el): el is HTMLElement => el !== null);
+    .filter((el): el is HTMLElement => el !== null)
+    .sort((a, b) => a.offsetTop - b.offsetTop);
 
   const sync = () => {
     const y = window.scrollY + 140;

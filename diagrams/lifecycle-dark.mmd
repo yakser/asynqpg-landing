@@ -1,0 +1,27 @@
+%%{init: {'theme':'base','themeVariables':{'fontFamily':'IBM Plex Sans, ui-sans-serif, system-ui, -apple-system, sans-serif','fontSize':'14px','lineColor':'#a8b0bb','edgeLabelBackground':'#1a2330','tertiaryColor':'#0e1620','background':'#0e1620','textColor':'#eef1f6','secondaryTextColor':'#eef1f6','tertiaryTextColor':'#eef1f6','secondaryColor':'#0e1620','primaryColor':'#0e1620'},'flowchart':{'htmlLabels':true,'curve':'basis','nodeSpacing':60,'rankSpacing':80}}}%%
+flowchart LR
+    Start((enqueue)):::start
+    P([pending]):::pending
+    R([running]):::running
+    C([completed]):::completed
+    F([failed]):::failed
+    X([cancelled]):::cancelled
+
+    Start --> P
+    P -- "fetched by<br/>consumer" --> R
+    R -- "handler<br/>success" --> C
+    R -- "error,<br/>attempts left" --> P
+    R -- "error,<br/>attempts = 0" --> F
+    F -- "manual<br/>cancel" --> X
+    R -. "lease expired,<br/>rescuer" .-> P
+    C -. "cleaner<br/>retention" .-> Done(((deleted))):::done
+    F -. "cleaner<br/>retention" .-> Done
+    X -. "cleaner<br/>retention" .-> Done
+
+    classDef start fill:#1a2238,stroke:#7d96f7,color:#bccaff,stroke-width:1px,font-weight:600
+    classDef pending fill:#3a2a14,stroke:#e8a440,color:#f4ce95,stroke-width:1px,font-weight:600
+    classDef running fill:#1a2842,stroke:#7da5e8,color:#c5d8f4,stroke-width:1px,font-weight:600
+    classDef completed fill:#173424,stroke:#5db77c,color:#aedfbe,stroke-width:1px,font-weight:600
+    classDef failed fill:#3a1d15,stroke:#e87a59,color:#f4baa8,stroke-width:1px,font-weight:600
+    classDef cancelled fill:#1f2630,stroke:#9aa0a8,color:#c3c8d0,stroke-width:1px,font-weight:600
+    classDef done fill:#171c24,stroke:#444a55,color:#888f99,stroke-width:1px,font-weight:500
