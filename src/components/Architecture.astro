@@ -1,15 +1,5 @@
 ---
-const lifecycleAscii = `                  enqueue              fetched by consumer       handler success
-                ┌─────────┐         ┌────────────────────┐     ┌─────────────┐
-  Enqueue(t) ──►│ <span class="pending">● pending</span> ├────────►│ <span class="running">● running</span>           ├────►│ <span class="completed">● completed</span> │
-                └────┬────┘         └─────┬──────────────┘     └─────────────┘
-                     ▲                    │
-   <span class="c">retry · attempts &gt; 0 │</span>                    │ handler error · attempts = 0
-                     │                    ▼
-                     │              <span class="failed">● failed</span>  ────────────►  <span class="cancelled">● cancelled</span>
-                     │              (manual retry/cancel)
-                     │
-   <span class="c">stuck · rescuer ─────┘</span>            <span class="c">↓ auto-delete (cleaner) for completed/failed/cancelled</span>`;
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 
 const packages = [
   {
@@ -58,7 +48,26 @@ const packages = [
       role="img"
       aria-label="Task lifecycle diagram: a task moves from pending to running, then to completed on success, or to failed when retries are exhausted; failed tasks can be manually cancelled, and stuck tasks return to pending via the rescuer."
     >
-      <pre aria-hidden="true" set:html={lifecycleAscii} />
+      <img
+        class="lifecycle-img lifecycle-img--light"
+        src={`${base}/assets/diagrams/lifecycle-light.png`}
+        alt=""
+        aria-hidden="true"
+        loading="lazy"
+        decoding="async"
+        width="1600"
+        height="600"
+      />
+      <img
+        class="lifecycle-img lifecycle-img--dark"
+        src={`${base}/assets/diagrams/lifecycle-dark.png`}
+        alt=""
+        aria-hidden="true"
+        loading="lazy"
+        decoding="async"
+        width="1600"
+        height="600"
+      />
     </div>
 
     <h3 id="packages-heading" class="h-packages">Packages</h3>

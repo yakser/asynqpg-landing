@@ -1,0 +1,27 @@
+%%{init: {'theme':'base','themeVariables':{'fontFamily':'IBM Plex Sans, ui-sans-serif, system-ui, -apple-system, sans-serif','fontSize':'14px','lineColor':'#7d8693','edgeLabelBackground':'#ffffff','tertiaryColor':'#ffffff','background':'#ffffff','primaryColor':'#ffffff','secondaryColor':'#ffffff','textColor':'#15212e'},'flowchart':{'htmlLabels':false,'curve':'basis','nodeSpacing':60,'rankSpacing':80}}}%%
+flowchart LR
+    Start((enqueue)):::start
+    P([pending]):::pending
+    R([running]):::running
+    C([completed]):::completed
+    F([failed]):::failed
+    X([cancelled]):::cancelled
+
+    Start --> P
+    P -- "fetched by<br/>consumer" --> R
+    R -- "handler<br/>success" --> C
+    R -- "error,<br/>attempts left" --> P
+    R -- "error,<br/>attempts = 0" --> F
+    F -- "manual<br/>cancel" --> X
+    R -. "lease expired,<br/>rescuer" .-> P
+    C -. "cleaner<br/>retention" .-> Done(((deleted))):::done
+    F -. "cleaner<br/>retention" .-> Done
+    X -. "cleaner<br/>retention" .-> Done
+
+    classDef start fill:#eef2ff,stroke:#4a72f5,color:#3a5ed6,stroke-width:1px,font-weight:600
+    classDef pending fill:#fef6e7,stroke:#d49a2c,color:#a76f1a,stroke-width:1px,font-weight:600
+    classDef running fill:#e9eef9,stroke:#3a72c8,color:#2c4aa8,stroke-width:1px,font-weight:600
+    classDef completed fill:#e9f4ed,stroke:#2f9e57,color:#1f6e3c,stroke-width:1px,font-weight:600
+    classDef failed fill:#fceae6,stroke:#d3492a,color:#a13520,stroke-width:1px,font-weight:600
+    classDef cancelled fill:#eff1f3,stroke:#818b97,color:#4a525e,stroke-width:1px,font-weight:600
+    classDef done fill:#f4f5f7,stroke:#c2c8d2,color:#56606e,stroke-width:1px,font-weight:500
